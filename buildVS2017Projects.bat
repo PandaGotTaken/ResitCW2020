@@ -1,0 +1,1 @@
+call "./vendor/premake/bin/premake5.exe" --file=premake5_VS2017.lua vs2017
