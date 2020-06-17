@@ -39,6 +39,7 @@ namespace IMAT3905
 		static void drawSphere(const glm::mat4& model, float radius, const glm::vec3& colour); //!< Draw a sphere using and model matrix supplied and an RGB colour
 		static void drawCapsule(const glm::mat4& model, float radius, float height, const glm::vec3& colour); //!< Draw a sphere using and model matrix supplied and an RGB colour
 
+		static unsigned int getFramebufferTextureID(); //!< Get the OpenGL renderer ID of the texture which is rendered to in the final render pass
 	private:
 	/**
 	* \struct RenderData

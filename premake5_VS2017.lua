@@ -37,13 +37,15 @@ project "Sandbox"
 		"vendor/spdlog/include",
 		"vendor/glfw/include",
 		"vendor/Glad/include",
-		"vendor/stb_image"
+		"vendor/stb_image",
+		"vendor/IMGui"
 	}
 
 	links 
 	{
 		"GLFW",
-		"Glad"
+		"Glad",
+		"IMGui"
 	}
 	
 	filter "configurations:Debug"
@@ -51,7 +53,7 @@ project "Sandbox"
 		symbols "On"
 		links
 		{
-			"./vendor/renderer/lib/IMAT3905_2015_DEBUG.lib"
+			"./vendor/renderer/lib/IMAT3905_2017_DEBUG.lib"
 		}
 
 
@@ -60,9 +62,9 @@ project "Sandbox"
 		optimize "On"
 		links
 		{
-			"./vendor/renderer/lib/IMAT3905_2015_RELEASE.lib"
+			"./vendor/renderer/lib/IMAT3905_2017_RELEASE.lib"
 		}
 group "Vendor"
 	include "vendor/glfw"
 	include "vendor/Glad"
-
+	include "vendor/IMGui"

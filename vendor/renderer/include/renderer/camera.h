@@ -31,6 +31,6 @@ namespace IMAT3905 {
 		const float m_minPitch = -1.2f;
 		const float m_maxPitch = 1.2f;
 		const float m_linearSpeed = 0.1f;
-		const float m_angularSpeed = 0.05;
+		const float m_angularSpeed = 0.05f;
 	};
 }

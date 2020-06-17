@@ -1,0 +1,20 @@
+#pragma once
+#include <imgui.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
+#include <array>
+
+class ImGuiHelper
+{
+public:
+	static void init();
+	static void begin();
+	static void end();
+	static void shutdown();
+	static void writeToConsole(const std::string & text);
+	static char * getConsoleString();
+private:
+	static std::array<std::string, 500> m_consoleLines;
+	static unsigned int m_consoleLinesLength;
+	static unsigned int m_consolePosition;
+};
