@@ -4,6 +4,8 @@
 #include "proxyMeshComponent.h"
 #include "transformComponent.h"
 #include "colourComponent.h"
+#include "keyboardComponent.h"
+#include "AIControllerComponent.h"
 
 class Editor
 {

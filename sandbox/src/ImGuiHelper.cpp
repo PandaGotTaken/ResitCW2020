@@ -5,8 +5,8 @@
 #include "ImGuiHelper.h"
 #include "IMAT3905.h"
 
-std::array<std::string, 500> ImGuiHelper::m_consoleLines = std::array<std::string, 500>();
-unsigned int ImGuiHelper::m_consoleLinesLength = 500;
+std::array<std::string, 50> ImGuiHelper::m_consoleLines = std::array<std::string, 50>();
+unsigned int ImGuiHelper::m_consoleLinesLength = 50;
 unsigned int ImGuiHelper::m_consolePosition = -1;
 
 void ImGuiHelper::init()
@@ -134,32 +134,34 @@ char * ImGuiHelper::getConsoleString()
 {
 	char * main_ptr;
 	char * reserve_ptr;
-	unsigned int capacity = 1024;
+	unsigned int capacity = 2048;
 	unsigned int allocated = 0;
 
 	main_ptr = (char *)malloc(sizeof(char) * capacity);
 	*main_ptr = '\0';
 
-	int pos = m_consolePosition - 1;
-	if (pos < 0) pos = m_consoleLinesLength - 1;
+	int pos = m_consolePosition + 1;
+	if (pos >= m_consoleLinesLength) pos = m_consoleLinesLength - pos;
 
 	for (int i = 0; i < m_consoleLinesLength; i++)
 	{
 		int len = strlen(m_consoleLines[pos].c_str());
 		if (!(allocated + len < capacity))
 		{
+			return main_ptr;
 			// Reallocate
-			capacity += capacity;
-			reserve_ptr = (char *)realloc(main_ptr, sizeof(char) * capacity);
-			main_ptr = reserve_ptr;
+			//capacity += capacity;
+			//reserve_ptr = (char *)realloc(main_ptr, sizeof(char) * capacity);
+			//main_ptr = reserve_ptr;
 		}
 
 		strcat_s(main_ptr, sizeof(char) * capacity, m_consoleLines[pos].c_str());
 		allocated += len;
 		pos++;
-		if (pos >= m_consoleLinesLength) pos = 0;
+		if (pos >= m_consoleLinesLength)
+		{
+			pos = 0;
+		}
 	}
-	
-	std::string s(main_ptr);
 	return main_ptr;
 }

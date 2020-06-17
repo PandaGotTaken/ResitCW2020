@@ -37,6 +37,7 @@ void Editor::init()
 	sphere.addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Sphere)));
 	sphere.addComponent(std::make_shared<TransformComponent>(TransformComponent({ -4.5,0.5,-4.5 }, { 0,0,0 }, { 1.f,1.f,1.f })));
 	sphere.addComponent(std::make_shared<ColourComponent>(ColourComponent({ 1.f,0.f,0.f })));
+	sphere.addComponent(std::make_shared<AIControllerComponent>(AIControllerComponent()));
 	m_gameObjects.push_back(std::make_shared<GameObject>(sphere));
 
 	// Cube
@@ -44,6 +45,7 @@ void Editor::init()
 	cube.addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
 	cube.addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,0.5,0 }, { 0,0,0 }, { 1.f,1.f,1.f })));
 	cube.addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.f,0.f,1.f })));
+	cube.addComponent(std::make_shared<KeyboardComponent>(KeyboardComponent()));
 	m_gameObjects.push_back(std::make_shared<GameObject>(cube));
 
 }
@@ -57,14 +59,16 @@ void Editor::run()
 		elapsedTime += m_application->resetTimer();
 		if (elapsedTime > 1.0 / 60.f)
 		{
-			ImGuiHelper::writeToConsole("Frame time (ms): " + std::to_string(elapsedTime));
+			//ImGuiHelper::writeToConsole("Frame time (ms): " + std::to_string(elapsedTime));
 
-			// Draw all game objects
+			// Update Draw all game objects
 
 			SC::Renderer::beginScene();
 			
 			for (auto it = m_gameObjects.begin(); it != m_gameObjects.end(); ++it)
 			{
+				(*it)->onUpdate(elapsedTime);
+
 				auto meshTypeIt = (*it)->getComponent<ProxyMeshComponent>();
 				auto modelIt = (*it)->getComponent<TransformComponent>();
 				auto colourIt = (*it)->getComponent<ColourComponent>();
@@ -238,6 +242,15 @@ void Editor::run()
 				transformComp->calculateTransform();
 			}
 
+			// Keyboard
+			if (type == typeid(KeyboardComponent).name()) ImGui::TextWrapped("No properties to edit.");
+			
+			// AIController
+			if (type == typeid(AIControllerComponent).name())
+			{
+				ImGui::TextWrapped("Add editor widgets for AI locations");
+			}
+
 			ImGui::End();
 
 			// Console output window -- use ImGuiHelper::writeToConsole to write to this console
@@ -273,6 +286,14 @@ void Editor::onEvent(SC::Event & e)
 	SC::EventDispatcher dispatcher(e);
 	dispatcher.dispatch<SC::WindowCloseEvent>(std::bind(&Editor::onClose, this, std::placeholders::_1));
 	dispatcher.dispatch<SC::KeyPressedEvent>(std::bind(&Editor::onKeyPress, this, std::placeholders::_1));
+
+	if (!e.handled())
+	{
+		for (auto it = m_gameObjects.begin(); it != m_gameObjects.end(); ++it)
+		{
+			(*it)->onEvent(e);
+		}
+	}
 }
 
 bool Editor::onKeyPress(SC::KeyPressedEvent & e)
@@ -280,22 +301,22 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	switch (e.GetKeyCode())
 	{
 	case SC_KEY_W:
-		SC::Renderer::cameraForward();
+		SC::Renderer::cameraForward(); return true;
 		break;
 	case SC_KEY_S:
-		SC::Renderer::cameraBack();
+		SC::Renderer::cameraBack(); return true;
 		break;
 	case SC_KEY_A:
-		SC::Renderer::cameraLeft();
+		SC::Renderer::cameraLeft(); return true;
 	break;
 	case SC_KEY_D:
-		SC::Renderer::cameraRight();
+		SC::Renderer::cameraRight(); return true;
 		break;
 	case SC_KEY_Q:
-		SC::Renderer::cameraUp();
+		SC::Renderer::cameraUp(); return true;
 		break;
 	case SC_KEY_E:
-		SC::Renderer::cameraDown();
+		SC::Renderer::cameraDown(); return true;
 		break;
 	}
 	return false;

@@ -14,7 +14,7 @@ public:
 	static void writeToConsole(const std::string & text);
 	static char * getConsoleString();
 private:
-	static std::array<std::string, 500> m_consoleLines;
+	static std::array<std::string, 50> m_consoleLines;
 	static unsigned int m_consoleLinesLength;
 	static unsigned int m_consolePosition;
 };
