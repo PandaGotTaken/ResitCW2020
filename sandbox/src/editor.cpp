@@ -8,7 +8,7 @@ void Editor::init()
 	m_application.reset(SC::Application::getInstance());
 
 	SC::WindowProperties props;
-	props.m_width = 1024;
+	props.m_width = 1200;
 	props.m_height = 800;
 	props.m_title = "IMAT3905 Resit";
 	m_application->init(props);
@@ -110,14 +110,6 @@ void Editor::run()
 				int len = strlen(name.c_str()) + 1;
 				gameObjectsNames[i] = (char*)malloc(len);
 				strcpy_s(gameObjectsNames[i], len, name.c_str());
-
-				/*auto meshTypeIt = (*it)->getComponent<ProxyMeshComponent>();
-				auto modelIt = (*it)->getComponent<TransformComponent>();
-				auto colourIt = (*it)->getComponent<ColourComponent>();
-
-				const MeshType& meshType = static_cast<ProxyMeshComponent*>(meshTypeIt->get())->getMeshType();
-				const glm::mat4& model = static_cast<TransformComponent*>(modelIt->get())->getTransform();
-				const glm::vec3& colour = static_cast<ColourComponent*>(colourIt->get())->getColour();*/
 				i++;
 			}
 
@@ -152,6 +144,7 @@ void Editor::run()
 
 			// Component properties
 			ImGui::TextWrapped("Properties:");
+			ImGui::NewLine();
 			// Get the selected component
 			auto it = m_gameObjects.at(gameObjectIndex)->begin() + componentIndex;
 			// Get the select components type as a const char *
@@ -172,6 +165,7 @@ void Editor::run()
 				// Set meshInt top current mesh type
 				meshIndex = meshIndices.at(meshType);
 
+				ImGui::TextWrapped("Mesh Type:");
 				ImGui::RadioButton("Cuboid", &meshIndex, 0); 
 				ImGui::RadioButton("Sphere", &meshIndex, 1); 
 				ImGui::RadioButton("Capsule", &meshIndex, 2);
@@ -190,10 +184,58 @@ void Editor::run()
 				colourFloat[1] = colourGLM.g;
 				colourFloat[2] = colourGLM.b;
 
+				ImGui::TextWrapped("Render Colour:");
 				ImGui::ColorEdit3("Colour", colourFloat);
 
 				// Set component from col float
 				colourGLM = { colourFloat[0],colourFloat[1],colourFloat[2] };
+			}
+
+			// Transform
+			if (type == typeid(TransformComponent).name())
+			{
+				auto transformComp = static_cast<TransformComponent*>(it->get());
+
+				// Position
+				glm::vec3& position = transformComp->getPosition();
+				static float pos[3];
+				// Set pos from component
+				pos[0] = position.r;
+				pos[1] = position.g;
+				pos[2] = position.b;
+
+				ImGui::TextWrapped("Transform");
+				ImGui::Text("X           Y           Z");
+				ImGui::InputFloat3("Position", pos, 2);
+				// Set component from pos
+				position = { pos[0],pos[1],pos[2] };
+
+				// Rotation
+				glm::vec3& rotation = transformComp->getRotation();
+				static float rot[3];
+				// Set pos from component
+				rot[0] = glm::degrees(rotation.x);
+				rot[1] = glm::degrees(rotation.y);
+				rot[2] = glm::degrees(rotation.z);
+
+				ImGui::InputFloat3("Rotation", rot, 2);
+				// Set component from rot
+				rotation = { glm::radians(rot[0]),glm::radians(rot[1]),glm::radians(rot[2]) };
+
+				// Scale
+				glm::vec3& scale = transformComp->getScale();
+				static float scl[3];
+				// Set pos from component
+				scl[0] = scale.x;
+				scl[1] = scale.y;
+				scl[2] = scale.z;
+
+				ImGui::InputFloat3("Scale", scl, 2);
+				// Set component from scl
+				scale = { scl[0],scl[1],scl[2] };
+
+				// Recalc model matrix
+				transformComp->calculateTransform();
 			}
 
 			ImGui::End();
@@ -206,7 +248,7 @@ void Editor::run()
 			ImGui::SetScrollHere(1.0f);
 			ImGui::End();
 
-			ImGui::ShowDemoWindow();
+			//ImGui::ShowDemoWindow();
 
 			ImGuiHelper::end();
 
