@@ -26,27 +26,25 @@ void Editor::init()
 	// Set up Game Objects
 
 	// Floor
-	GameObject floor("Floor");
-	floor.addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
-	floor.addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,-0.05,0 }, { 0,0,0 }, { 10,0.1,10.0 })));
-	floor.addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.0f ,1.f,0.f })));
-	m_gameObjects.push_back(std::make_shared<GameObject>(floor));
+	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Floor")));
+	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
+	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,-0.05,0 }, { 0,0,0 }, { 10,0.1,10.0 })));
+	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.0f ,1.f,0.f })));
+
 
 	// Sphere
-	GameObject sphere("Sphere");
-	sphere.addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Sphere)));
-	sphere.addComponent(std::make_shared<TransformComponent>(TransformComponent({ -4.5,0.5,-4.5 }, { 0,0,0 }, { 1.f,1.f,1.f })));
-	sphere.addComponent(std::make_shared<ColourComponent>(ColourComponent({ 1.f,0.f,0.f })));
-	sphere.addComponent(std::make_shared<AIControllerComponent>(AIControllerComponent()));
-	m_gameObjects.push_back(std::make_shared<GameObject>(sphere));
+	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Sphere")));
+	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Sphere)));
+	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ -4.5,0.5,-4.5 }, { 0,0,0 }, { 1.f,1.f,1.f })));
+	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 1.f,0.f,0.f })));
+	m_gameObjects.back()->addComponent(std::make_shared<AIControllerComponent>(AIControllerComponent()));
 
 	// Cube
-	GameObject cube("Cube");
-	cube.addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
-	cube.addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,0.5,0 }, { 0,0,0 }, { 1.f,1.f,1.f })));
-	cube.addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.f,0.f,1.f })));
-	cube.addComponent(std::make_shared<KeyboardComponent>(KeyboardComponent()));
-	m_gameObjects.push_back(std::make_shared<GameObject>(cube));
+	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Cube")));
+	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
+	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,0.5,0 }, { 0,0,0 }, { 1.f,1.f,1.f })));
+	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.f,0.f,1.f })));
+	m_gameObjects.back()->addComponent(std::make_shared<KeyboardComponent>(KeyboardComponent()));
 
 }
 
