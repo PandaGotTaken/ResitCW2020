@@ -1,13 +1,7 @@
 #pragma once
+#include "IMAT3905.h"
 
-#include "component.h"
-
-class AIControllerComponent : public Component
+class AIControllerComponent
 {
 public:
-	virtual void onUpdate(float timestep) override;
-	virtual void receiveMessage(const ComponentMessage& msg) override;
-	const std::type_info& getType() { return typeid(AIControllerComponent); }
-private:
-
 };

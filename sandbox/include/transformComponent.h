@@ -1,25 +1,77 @@
 #pragma once
 
-#include "component.h"
+#include <entt/entt.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-class TransformComponent : public Component
+class TransformComponent
 {
 public:
-	TransformComponent(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale) :
-		m_position(position), m_rotation(rotation), m_scale(scale)
-	{calculateTransform();}; //!< Construtor which takes position, scale and rotation
-	glm::mat4& getTransform() { return m_transform; } //!< Accessor for transform
-	glm::vec3& getPosition() { return m_position; } //!< Accessor for  position
-	glm::vec3& getRotation() { return m_rotation; } //!< Accessor for rotation
-	glm::vec3& getScale() { return m_scale; } //!< Accessor for scale
-	void calculateTransform();
-	const std::type_info& getType() { return typeid(TransformComponent); }
-private:
-	glm::mat4 m_transform; 
-	glm::vec3 m_position;
-	glm::vec3 m_rotation;
-	glm::vec3 m_scale;
-	
-	void receiveMessage(const ComponentMessage& msg) override; //!< Action when a message is received
-};
+	glm::vec3 translation = { 0.f, 0.f, 0.f };
+	glm::vec3 scale = { 1.f, 1.f, 1.f };
+	glm::quat rotation;
 
+	TransformComponent() { transform = glm::mat4(1.0f); }
+	TransformComponent(glm::vec3 t, glm::vec3 r, glm::vec3 s)
+	{
+		setTransform(t, r, s);
+	}
+	TransformComponent(glm::vec3 t, glm::quat r, glm::vec3 s)
+	{
+		setTransform(t, r, s);
+	}
+
+	glm::mat4& setTransform(glm::vec3 t, glm::vec3 r, glm::vec3 s)
+	{
+		translation = t;
+		rotation = glm::quat(r);
+		scale = s;
+
+		return updateTransform();
+	};
+
+	glm::mat4& setTransform(glm::vec3 t, glm::quat r, glm::vec3 s)
+	{
+		translation = t;
+		rotation = r;
+		scale = s;
+
+		return updateTransform();
+	};
+
+	glm::mat4& setTransform(glm::mat4& parentTransform, glm::vec3 t, glm::vec3 r, glm::vec3 s)
+	{
+		translation = t;
+		rotation = glm::quat(r);
+		scale = s;
+
+		return updateTransform(parentTransform);
+	};
+
+	glm::mat4& updateTransform()
+	{
+		transform = glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
+
+		return transform;
+	}
+
+	glm::mat4& updateTransform(glm::mat4& parentTransform)
+	{
+		transform = parentTransform * updateTransform();
+
+		return transform;
+	}
+
+	glm::mat4& getTransform() { return transform; }
+
+	void addRotation(glm::vec3& eulerAngles)
+	{
+		glm::quat rotationDelta(eulerAngles);
+		rotation *= rotationDelta;
+	}
+private:
+	glm::mat4 transform;
+
+};

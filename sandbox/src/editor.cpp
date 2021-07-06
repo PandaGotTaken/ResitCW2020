@@ -23,29 +23,29 @@ void Editor::init()
 	// Setup ImGui
 	ImGuiHelper::init();
 
+
 	// Set up Game Objects
+	m_entities.reserve(100);
 
 	// Floor
-	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Floor")));
-	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
-	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,-0.05,0 }, { 0,0,0 }, { 10,0.1,10.0 })));
-	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.0f ,1.f,0.f })));
-
+	m_entities.push_back(m_registry.create());
+	m_registry.emplace<LabelComponent>(m_entities.back(), "Floor");
+	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, -0.05f, 0.f), glm::vec3(0.f), glm::vec3(10.f,0.1f,10.f));
+	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 1.f, 0.f));
 
 	// Sphere
-	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Sphere")));
-	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Sphere)));
-	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ -4.5,0.5,-4.5 }, { 0,0,0 }, { 1.f,1.f,1.f })));
-	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 1.f,0.f,0.f })));
-	m_gameObjects.back()->addComponent(std::make_shared<AIControllerComponent>(AIControllerComponent()));
+	m_entities.push_back(m_registry.create());
+	m_registry.emplace<LabelComponent>(m_entities.back(), "Sphere");
+	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(-4.5f, 0.5f, -4.5f), glm::vec3(0.f), glm::vec3(1.f));
+	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Sphere, glm::vec3(1.f, 0.f, 0.f));
+	m_registry.emplace<AIControllerComponent>(m_entities.back());
 
 	// Cube
-	m_gameObjects.push_back(std::make_shared<GameObject>(GameObject("Cube")));
-	m_gameObjects.back()->addComponent(std::make_shared<ProxyMeshComponent>(ProxyMeshComponent(MeshType::Cuboid)));
-	m_gameObjects.back()->addComponent(std::make_shared<TransformComponent>(TransformComponent({ 0,0.5,0 }, { 0,0,0 }, { 1.f,1.f,1.f })));
-	m_gameObjects.back()->addComponent(std::make_shared<ColourComponent>(ColourComponent({ 0.f,0.f,1.f })));
-	m_gameObjects.back()->addComponent(std::make_shared<KeyboardComponent>(KeyboardComponent()));
-
+	m_entities.push_back(m_registry.create());
+	m_registry.emplace<LabelComponent>(m_entities.back(), "Cube");
+	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f), glm::vec3(1.f));
+	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 0.f, 1.f));
+	m_registry.emplace<KeyboardComponent>(m_entities.back());
 }
 
 void Editor::run()
@@ -57,23 +57,21 @@ void Editor::run()
 		elapsedTime += m_application->resetTimer();
 		if (elapsedTime > 1.0 / 60.f)
 		{
-			//ImGuiHelper::writeToConsole("Frame time (ms): " + std::to_string(elapsedTime));
+			ImGuiHelper::writeToConsole("Frame time (ms): " + std::to_string(elapsedTime));
 
-			// Update Draw all game objects
+			// Draw all game objects
 
 			SC::Renderer::beginScene();
 			
-			for (auto it = m_gameObjects.begin(); it != m_gameObjects.end(); ++it)
+			auto renderView = m_registry.view<RenderComponent, TransformComponent>();
+			for (auto entity : renderView)
 			{
-				(*it)->onUpdate(elapsedTime);
+				auto renderComp = m_registry.get<RenderComponent>(entity);
+				auto transformComp = m_registry.get<TransformComponent>(entity);
 
-				auto meshTypeIt = (*it)->getComponent<ProxyMeshComponent>();
-				auto modelIt = (*it)->getComponent<TransformComponent>();
-				auto colourIt = (*it)->getComponent<ColourComponent>();
-
-				const MeshType& meshType = static_cast<ProxyMeshComponent*>(meshTypeIt->get())->getMeshType();
-				const glm::mat4& model = static_cast<TransformComponent*>(modelIt->get())->getTransform();
-				const glm::vec3& colour = static_cast<ColourComponent*>(colourIt->get())->getColour();
+				auto meshType = renderComp.getMeshType();
+				auto colour = renderComp.getColour();
+				auto model = transformComp.getTransform();
 
 				switch (meshType)
 				{
@@ -89,9 +87,10 @@ void Editor::run()
 			}
 			SC::Renderer::endScene();
 
+			// ImGui stuff
 			ImGuiHelper::begin();
 
-			// Renderewr output window
+			// Renderer output window
 			ImGui::Begin("Renderer output");
 			uint32_t textureID = SC::Renderer::getFramebufferTextureID();
 			ImGui::Image((void*)textureID, ImVec2{ 800, 600 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -100,155 +99,120 @@ void Editor::run()
 			// Game object settings window
 
 			ImGui::Begin("Properties");
-
-
 			// Game object list box
-			// Get char * for game object names
-			std::vector<char *> gameObjectsNames(m_gameObjects.size());
+			// Get char * for entity labels
+			auto labelView = m_registry.view<LabelComponent>();
+			std::vector<char *> labels(labelView.size());
 			int i = 0;
-			for (auto it = m_gameObjects.begin(); it != m_gameObjects.end(); ++it)
+			for (auto entity : labelView)
 			{
-				const std::string& name = (*it)->name();
+				auto labelComp = m_registry.get<LabelComponent>(entity);
+				const std::string& name = labelComp.label;
 				int len = strlen(name.c_str()) + 1;
-				gameObjectsNames[i] = (char*)malloc(len);
-				strcpy_s(gameObjectsNames[i], len, name.c_str());
+				labels[i] = (char*)malloc(len);
+				strcpy_s(labels[i], len, name.c_str());
 				i++;
 			}
+
 
 			ImGui::TextWrapped("Game Objects:");
-			static int gameObjectIndex = 0;
+			static int labelIndex = 0;
 			ImGui::SetNextItemWidth(-1);
-			ImGui::ListBox("##GameObjects", &gameObjectIndex, gameObjectsNames.data(), gameObjectsNames.size(), gameObjectsNames.size());
+			ImGui::ListBox("##GameObjects", &labelIndex, labels.data(), labels.size(), labels.size());
 			// Clean up char * for list box
-			for (auto it = gameObjectsNames.begin(); it != gameObjectsNames.end(); ++it) free(*it);
-
+			for (auto it = labels.begin(); it != labels.end(); ++it) free(*it);
+			
 			// Component list box
 			// Get char * for component types/names
-			auto entity = m_gameObjects.at(gameObjectIndex);
-			std::vector<char *> componentTypes(entity->componentCount());
-			i = 0;
-			for (auto it = entity->begin(); it != entity->end(); ++it)
-			{
-				const std::string& type = (*it)->getType().name();
-				int len = strlen(type.c_str()) - 5; // Removing "class "
-				componentTypes[i] = (char*)malloc(len);
-				strncpy_s(componentTypes[i], len, type.c_str()+6, len - 1);
-				componentTypes[i][len - 1] = '\0';
-				i++;
-			}
+			auto selectedEntity = labelView[labelIndex];
+			std::vector<char *> componentLabels;
+			std::vector<char> componentTypes;
+			if (m_registry.any_of<LabelComponent>(selectedEntity)) { componentLabels.push_back("Label"); componentTypes.push_back('L'); }
+			if (m_registry.any_of<TransformComponent>(selectedEntity)) {componentLabels.push_back("Transform"); componentTypes.push_back('T');}
+			if (m_registry.any_of<RenderComponent>(selectedEntity)) {componentLabels.push_back("Render"); componentTypes.push_back('R');}
+			if (m_registry.any_of<KeyboardComponent>(selectedEntity)) {componentLabels.push_back("Key Controller"); componentTypes.push_back('K');}
+			if (m_registry.any_of<AIControllerComponent>(selectedEntity)) {componentLabels.push_back("AI Controller"); componentTypes.push_back('A');}
 
 			ImGui::TextWrapped("Components:");
 			static int componentIndex = 0;
 			ImGui::SetNextItemWidth(-1);
-			ImGui::ListBox("##Components", &componentIndex, componentTypes.data(), componentTypes.size(), componentTypes.size());
-			// Clean up char * for component list box
-			for (auto it = componentTypes.begin(); it != componentTypes.end(); ++it) free(*it);
+			ImGui::ListBox("##Components", &componentIndex, componentLabels.data(), componentLabels.size(), componentLabels.size());
 
 			// Component properties
 			ImGui::TextWrapped("Properties:");
 			ImGui::NewLine();
-			// Get the selected component
-			auto it = m_gameObjects.at(gameObjectIndex)->begin() + componentIndex;
-			// Get the select components type as a const char *
-			const char * type = (*(m_gameObjects.at(gameObjectIndex)->begin() + componentIndex))->getType().name();
-
-			// ProxyMesh
-			if (type == typeid(ProxyMeshComponent).name())
+			
+			char selectedComponentType = componentTypes[componentIndex];
+			switch (selectedComponentType)
 			{
-				MeshType& meshType = static_cast<ProxyMeshComponent*>(it->get())->getMeshType();
-				if (meshType == MeshType::Sphere)
-				{
-					int i = 0;
-				}
-				MeshType meshTypes[3] = {MeshType::Cuboid,MeshType::Sphere, MeshType::Capsule };
-				std::map<MeshType, int> meshIndices = { {MeshType::Cuboid,0},{MeshType::Sphere,1},{MeshType::Capsule,2} };
-
-				static int meshIndex;
-				// Set meshInt top current mesh type
-				meshIndex = meshIndices.at(meshType);
-
-				ImGui::TextWrapped("Mesh Type:");
-				ImGui::RadioButton("Cuboid", &meshIndex, 0); 
-				ImGui::RadioButton("Sphere", &meshIndex, 1); 
-				ImGui::RadioButton("Capsule", &meshIndex, 2);
-
-				// Update mesh type from meshInt
-				meshType = meshTypes[meshIndex];
-			}
-
-			// Colour
-			if (type == typeid(ColourComponent).name())
+			case 'L':
+				ImGui::TextWrapped("No properties.");
+				break;
+			case 'T':
 			{
-				glm::vec3& colourGLM = static_cast<ColourComponent*>(it->get())->getColour();
-				static float colourFloat[3];
-				// Set col float from component
-				colourFloat[0] = colourGLM.r;
-				colourFloat[1] = colourGLM.g;
-				colourFloat[2] = colourGLM.b;
-
-				ImGui::TextWrapped("Render Colour:");
-				ImGui::ColorEdit3("Colour", colourFloat);
-
-				// Set component from col float
-				colourGLM = { colourFloat[0],colourFloat[1],colourFloat[2] };
-			}
-
-			// Transform
-			if (type == typeid(TransformComponent).name())
-			{
-				auto transformComp = static_cast<TransformComponent*>(it->get());
+				auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
 
 				// Position
-				glm::vec3& position = transformComp->getPosition();
 				static float pos[3];
 				// Set pos from component
-				pos[0] = position.r;
-				pos[1] = position.g;
-				pos[2] = position.b;
+				pos[0] = transformComp.translation.x;
+				pos[1] = transformComp.translation.y;
+				pos[2] = transformComp.translation.z;
 
 				ImGui::TextWrapped("Transform");
 				ImGui::Text("X           Y           Z");
-				ImGui::InputFloat3("Position", pos, 2);
+				ImGui::InputFloat3("Translation", pos, 2);
 				// Set component from pos
-				position = { pos[0],pos[1],pos[2] };
+				transformComp.translation = { pos[0],pos[1],pos[2] };
+
 
 				// Rotation
-				glm::vec3& rotation = transformComp->getRotation();
+				glm::quat rotation = transformComp.rotation;
+				glm::vec3 eulerAngles = glm::eulerAngles(rotation);
 				static float rot[3];
 				// Set pos from component
-				rot[0] = glm::degrees(rotation.x);
-				rot[1] = glm::degrees(rotation.y);
-				rot[2] = glm::degrees(rotation.z);
+				rot[0] = glm::degrees(eulerAngles.x);
+				rot[1] = glm::degrees(eulerAngles.y);
+				rot[2] = glm::degrees(eulerAngles.z);
 
 				ImGui::InputFloat3("Rotation", rot, 2);
 				// Set component from rot
-				rotation = { glm::radians(rot[0]),glm::radians(rot[1]),glm::radians(rot[2]) };
+				transformComp.rotation = glm::quat(glm::vec3(glm::radians(rot[0]), glm::radians(rot[1]), glm::radians(rot[2])));
 
 				// Scale
-				glm::vec3& scale = transformComp->getScale();
 				static float scl[3];
 				// Set pos from component
-				scl[0] = scale.x;
-				scl[1] = scale.y;
-				scl[2] = scale.z;
+				scl[0] = transformComp.scale.x;
+				scl[1] = transformComp.scale.y;
+				scl[2] = transformComp.scale.z;
 
 				ImGui::InputFloat3("Scale", scl, 2);
 				// Set component from scl
-				scale = { scl[0],scl[1],scl[2] };
+				transformComp.scale = { scl[0],scl[1],scl[2] };
 
 				// Recalc model matrix
-				transformComp->calculateTransform();
+				transformComp.updateTransform();
 			}
-
-			// Keyboard
-			if (type == typeid(KeyboardComponent).name()) ImGui::TextWrapped("No properties to edit.");
+				break;
+			case 'R':
+				ImGui::TextWrapped("ADD STUFF HERE");
+				/*  TODO:
+					Based on the code above you should implement ImGui controls to be able to change the render component mesh type and colour.
+					Mesh type should be selected using an ImGui::RadioButton
+					Colour should be changed using an ImGui::ColorEdit3
+					Look in the ImGui::ShowDemoWindow() code for help on how to use these controls.
+				*/
+				break;
+			case 'K':
+				ImGui::TextWrapped("No properties.");
+				// For higher marks perform key mapping here.
+				break;
+			case 'A':
+				ImGui::TextWrapped("No properties.");
+				// For higher marks allow way points to be edited here.
+				break;
+			}
 			
-			// AIController
-			if (type == typeid(AIControllerComponent).name())
-			{
-				ImGui::TextWrapped("Add editor widgets for AI locations");
-			}
-
 			ImGui::End();
 
 			// Console output window -- use ImGuiHelper::writeToConsole to write to this console
@@ -258,9 +222,7 @@ void Editor::run()
 			free(consoleText);
 			ImGui::SetScrollHere(1.0f);
 			ImGui::End();
-
-			//ImGui::ShowDemoWindow();
-
+			
 			ImGuiHelper::end();
 
 			m_application->updateWindow(elapsedTime);
@@ -284,14 +246,6 @@ void Editor::onEvent(SC::Event & e)
 	SC::EventDispatcher dispatcher(e);
 	dispatcher.dispatch<SC::WindowCloseEvent>(std::bind(&Editor::onClose, this, std::placeholders::_1));
 	dispatcher.dispatch<SC::KeyPressedEvent>(std::bind(&Editor::onKeyPress, this, std::placeholders::_1));
-
-	if (!e.handled())
-	{
-		for (auto it = m_gameObjects.begin(); it != m_gameObjects.end(); ++it)
-		{
-			(*it)->onEvent(e);
-		}
-	}
 }
 
 bool Editor::onKeyPress(SC::KeyPressedEvent & e)

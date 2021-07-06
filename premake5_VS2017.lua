@@ -38,7 +38,8 @@ project "Sandbox"
 		"vendor/glfw/include",
 		"vendor/Glad/include",
 		"vendor/stb_image",
-		"vendor/IMGui"
+		"vendor/IMGui",
+		"vendor/enTT/single_include"
 	}
 
 	links 

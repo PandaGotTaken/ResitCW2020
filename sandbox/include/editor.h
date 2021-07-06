@@ -1,9 +1,10 @@
 #pragma once
 #include "IMAT3905.h"
-#include "gameObject.h"
-#include "proxyMeshComponent.h"
+#include <entt/entt.hpp>
+
+#include "labelComponent.h"
 #include "transformComponent.h"
-#include "colourComponent.h"
+#include "renderComponent.h"
 #include "keyboardComponent.h"
 #include "AIControllerComponent.h"
 
@@ -18,5 +19,7 @@ public:
 	bool onKeyPress(SC::KeyPressedEvent& e); //!< On a key pressed event
 private:
 	std::shared_ptr<SC::Application> m_application; //!< Application
-	std::vector<std::shared_ptr<GameObject>> m_gameObjects; //!< Game objects in the scene
+	entt::registry m_registry; //!< ECS registry
+	std::vector<entt::entity> m_entities; //!< Game objects
+
 };
