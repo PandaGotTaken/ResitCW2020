@@ -13,6 +13,8 @@ void Editor::init()
 	props.m_title = "IMAT3905 Resit";
 	m_application->init(props);
 
+	
+
 	// Set the event callback to this class
 	auto window = SC::Application::getInstance()->getWindow();
 	window->setEventCallback(std::bind(&Editor::onEvent, this, std::placeholders::_1));
@@ -32,7 +34,7 @@ void Editor::init()
 	m_registry.emplace<LabelComponent>(m_entities.back(), "Floor");
 	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, -0.05f, 0.f), glm::vec3(0.f), glm::vec3(10.f,0.1f,10.f));
 	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 1.f, 0.f));
-
+	
 	// Sphere
 	m_entities.push_back(m_registry.create());
 	m_registry.emplace<LabelComponent>(m_entities.back(), "Sphere");
@@ -141,8 +143,11 @@ void Editor::run()
 			// Component properties
 			ImGui::TextWrapped("Properties:");
 			ImGui::NewLine();
-			
+			ImGui::ShowDemoWindow();
 			char selectedComponentType = componentTypes[componentIndex];
+			
+			static int e = 0;
+
 			switch (selectedComponentType)
 			{
 			case 'L':
@@ -169,6 +174,8 @@ void Editor::run()
 				// Rotation
 				glm::quat rotation = transformComp.rotation;
 				glm::vec3 eulerAngles = glm::eulerAngles(rotation);
+
+
 				static float rot[3];
 				// Set pos from component
 				rot[0] = glm::degrees(eulerAngles.x);
@@ -178,6 +185,7 @@ void Editor::run()
 				ImGui::InputFloat3("Rotation", rot, 2);
 				// Set component from rot
 				transformComp.rotation = glm::quat(glm::vec3(glm::radians(rot[0]), glm::radians(rot[1]), glm::radians(rot[2])));
+
 
 				// Scale
 				static float scl[3];
@@ -193,16 +201,33 @@ void Editor::run()
 				// Recalc model matrix
 				transformComp.updateTransform();
 			}
-				break;
+			break;
 			case 'R':
-				ImGui::TextWrapped("ADD STUFF HERE");
+			{
+				auto& renderComp = m_registry.get<RenderComponent>(selectedEntity);
+
+
+				ImGui::RadioButton("Capsule", &e, 0); ImGui::SameLine();
+				ImGui::RadioButton("Cuboid", &e, 1); ImGui::SameLine();
+				ImGui::RadioButton("Sphere", &e, 2);
+
+
+				auto& newColour = renderComp.getColour();
+				static float rgb[3];
+				rgb[0] = renderComp.getColour()[0];
+				rgb[1] = renderComp.getColour()[1];
+				rgb[2] = renderComp.getColour()[2];
+				ImGui::ColorEdit3("Colour", rgb);
+				newColour = glm::vec3(rgb[0], rgb[1], rgb[2]);
+
 				/*  TODO:
 					Based on the code above you should implement ImGui controls to be able to change the render component mesh type and colour.
 					Mesh type should be selected using an ImGui::RadioButton
 					Colour should be changed using an ImGui::ColorEdit3
 					Look in the ImGui::ShowDemoWindow() code for help on how to use these controls.
 				*/
-				break;
+			}
+			break;
 			case 'K':
 				ImGui::TextWrapped("No properties.");
 				// For higher marks perform key mapping here.
