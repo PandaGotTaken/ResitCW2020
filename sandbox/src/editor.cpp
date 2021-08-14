@@ -48,6 +48,13 @@ void Editor::init()
 	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f), glm::vec3(1.f));
 	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 0.f, 1.f));
 	m_registry.emplace<KeyboardComponent>(m_entities.back());
+
+	// Added Capsule
+	m_entities.push_back(m_registry.create());
+	m_registry.emplace<LabelComponent>(m_entities.back(), "Capsule");
+	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(4.5f, 0.5f, -4.5f), glm::vec3(0.f), glm::vec3(1.f));
+	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Capsule, glm::vec3(0.5f, 0.5f, 1.f));
+	m_registry.emplace<KeyboardComponent>(m_entities.back());
 }
 
 void Editor::run()
