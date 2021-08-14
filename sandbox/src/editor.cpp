@@ -146,7 +146,6 @@ void Editor::run()
 			ImGui::ShowDemoWindow();
 			char selectedComponentType = componentTypes[componentIndex];
 			
-			static int e = 0;
 
 			switch (selectedComponentType)
 			{
@@ -206,20 +205,28 @@ void Editor::run()
 			{
 				auto& renderComp = m_registry.get<RenderComponent>(selectedEntity);
 
+				MeshType currentMesh = renderComp.getMeshType();
+				int meshIndex = 0;
+				if (currentMesh == MeshType::Capsule) { meshIndex = 1; }
+				if (currentMesh == MeshType::Cuboid) { meshIndex = 2; }
+				if (currentMesh == MeshType::Sphere) { meshIndex = 3; }
+			
+				ImGui::RadioButton("Capsule", &meshIndex, 1);  ImGui::SameLine();
+				ImGui::RadioButton("Cuboid", &meshIndex, 2); ImGui::SameLine();
+				ImGui::RadioButton("Sphere", &meshIndex, 3);
 
-				ImGui::RadioButton("Capsule", &e, 0); ImGui::SameLine();
-				ImGui::RadioButton("Cuboid", &e, 1); ImGui::SameLine();
-				ImGui::RadioButton("Sphere", &e, 2);
+				renderComp.setMeshType(meshIndex);
 
 
-				auto& newColour = renderComp.getColour();
+				//Colour selection
+				auto& currentColour = renderComp.getColour();
 				static float rgb[3];
-				rgb[0] = renderComp.getColour()[0];
-				rgb[1] = renderComp.getColour()[1];
-				rgb[2] = renderComp.getColour()[2];
+				rgb[0] = currentColour[0];
+				rgb[1] = currentColour[1];
+				rgb[2] = currentColour[2];
 				ImGui::ColorEdit3("Colour", rgb);
-				newColour = glm::vec3(rgb[0], rgb[1], rgb[2]);
-
+				glm::vec3 newColour = glm::vec3(rgb[0], rgb[1], rgb[2]);
+				renderComp.setColour(newColour);
 				/*  TODO:
 					Based on the code above you should implement ImGui controls to be able to change the render component mesh type and colour.
 					Mesh type should be selected using an ImGui::RadioButton
