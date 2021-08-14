@@ -214,13 +214,16 @@ void Editor::run()
 
 				MeshType currentMesh = renderComp.getMeshType();
 				int meshIndex = 0;
+
+				/*
 				if (currentMesh == MeshType::Capsule) { meshIndex = 1; }
 				if (currentMesh == MeshType::Cuboid) { meshIndex = 2; }
 				if (currentMesh == MeshType::Sphere) { meshIndex = 3; }
-			
-				ImGui::RadioButton("Capsule", &meshIndex, 1);  ImGui::SameLine();
-				ImGui::RadioButton("Cuboid", &meshIndex, 2); ImGui::SameLine();
-				ImGui::RadioButton("Sphere", &meshIndex, 3);
+				*/
+				
+				if (ImGui::RadioButton("Capsule", currentMesh == MeshType::Capsule)) { meshIndex = 1; };  ImGui::SameLine();
+				if (ImGui::RadioButton("Cuboid", currentMesh == MeshType::Cuboid)) { meshIndex = 2; }; ImGui::SameLine();
+				if (ImGui::RadioButton("Sphere", currentMesh == MeshType::Sphere)) { meshIndex = 3; };
 
 				renderComp.setMeshType(meshIndex);
 
@@ -299,7 +302,7 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 		break;
 	case SC_KEY_A:
 		SC::Renderer::cameraLeft(); return true;
-	break;
+		break;
 	case SC_KEY_D:
 		SC::Renderer::cameraRight(); return true;
 		break;
@@ -309,6 +312,7 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	case SC_KEY_E:
 		SC::Renderer::cameraDown(); return true;
 		break;
+	
 	}
 	return false;
 }
