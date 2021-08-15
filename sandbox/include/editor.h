@@ -17,6 +17,7 @@ public:
 	void onEvent(SC::Event& e); //!< Event callback function
 	bool onClose(SC::WindowCloseEvent& e) { SC::Application::getInstance()->shutdown(); return true; }; //!< Close the application
 	bool onKeyPress(SC::KeyPressedEvent& e); //!< On a key pressed event
+	bool onKeyRelease(SC::KeyReleasedEvent&e); //!< On a key released event
 private:
 	std::shared_ptr<SC::Application> m_application; //!< Application
 	entt::registry m_registry; //!< ECS registry

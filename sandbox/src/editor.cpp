@@ -42,19 +42,19 @@ void Editor::init()
 	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Sphere, glm::vec3(1.f, 0.f, 0.f));
 	m_registry.emplace<AIControllerComponent>(m_entities.back());
 
-	// Cube
-	m_entities.push_back(m_registry.create());
-	m_registry.emplace<LabelComponent>(m_entities.back(), "Cube");
-	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f), glm::vec3(1.f));
-	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 0.f, 1.f));
-	m_registry.emplace<KeyboardComponent>(m_entities.back());
-
 	// Added Capsule
 	m_entities.push_back(m_registry.create());
 	m_registry.emplace<LabelComponent>(m_entities.back(), "Capsule");
 	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(4.5f, 0.5f, -4.5f), glm::vec3(0.f), glm::vec3(1.f));
 	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Capsule, glm::vec3(0.5f, 0.5f, 1.f));
-	m_registry.emplace<KeyboardComponent>(m_entities.back());
+
+	// Cube
+	m_entities.push_back(m_registry.create());
+	m_registry.emplace<LabelComponent>(m_entities.back(), "Cube");
+	m_registry.emplace<TransformComponent>(m_entities.back(), glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f), glm::vec3(1.f));
+	m_registry.emplace<RenderComponent>(m_entities.back(), MeshType::Cuboid, glm::vec3(0.f, 0.f, 1.f));
+	m_registry.emplace<KeyboardComponent>(m_entities.back(), 0.2);
+
 }
 
 void Editor::run()
@@ -220,7 +220,7 @@ void Editor::run()
 				if (currentMesh == MeshType::Cuboid) { meshIndex = 2; }
 				if (currentMesh == MeshType::Sphere) { meshIndex = 3; }
 				*/
-				
+
 				if (ImGui::RadioButton("Capsule", currentMesh == MeshType::Capsule)) { meshIndex = 1; };  ImGui::SameLine();
 				if (ImGui::RadioButton("Cuboid", currentMesh == MeshType::Cuboid)) { meshIndex = 2; }; ImGui::SameLine();
 				if (ImGui::RadioButton("Sphere", currentMesh == MeshType::Sphere)) { meshIndex = 3; };
@@ -246,8 +246,28 @@ void Editor::run()
 			}
 			break;
 			case 'K':
+			{
+				
+				auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
+				auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
+
+				float translation[3];
+
+				translation[0] = transformComp.translation.x;
+				translation[1] = transformComp.translation.y;
+				translation[2] = transformComp.translation.z;
+
+				glm::vec3 currentDirection = keyboardComp.getDirection();
+
+				translation[0] += currentDirection.x;
+				translation[2] += currentDirection.z;
+				transformComp.translation = { translation[0], translation[1], translation[2] };
+				transformComp.updateTransform();
+
 				ImGui::TextWrapped("No properties.");
+				
 				// For higher marks perform key mapping here.
+			}
 				break;
 			case 'A':
 				ImGui::TextWrapped("No properties.");
@@ -288,11 +308,19 @@ void Editor::onEvent(SC::Event & e)
 	SC::EventDispatcher dispatcher(e);
 	dispatcher.dispatch<SC::WindowCloseEvent>(std::bind(&Editor::onClose, this, std::placeholders::_1));
 	dispatcher.dispatch<SC::KeyPressedEvent>(std::bind(&Editor::onKeyPress, this, std::placeholders::_1));
+	dispatcher.dispatch<SC::KeyReleasedEvent>(std::bind(&Editor::onKeyRelease, this, std::placeholders::_1));
 }
 
 bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 {
+	
+	auto labelView = m_registry.view<LabelComponent>();
+	static int labelIndex = 0;
+	auto selectedEntity = labelView[labelIndex];
+	auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
+	
 	switch (e.GetKeyCode())
+	
 	{
 	case SC_KEY_W:
 		SC::Renderer::cameraForward(); return true;
@@ -312,7 +340,56 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	case SC_KEY_E:
 		SC::Renderer::cameraDown(); return true;
 		break;
-	
+		
+	case SC_KEY_UP:
+		//transformComp.translation.x += 0.5;
+		//transformComp.updateTransform();
+		keyboardComp.directionPressed(MovementDirection::Front);
+		break;
+	case SC_KEY_DOWN:
+		//transformComp.translation.x -= 0.5;
+		//transformComp.updateTransform();
+		keyboardComp.directionPressed(MovementDirection::Back);
+		break;
+	case SC_KEY_LEFT:
+		//transformComp.translation.z += 0.5;
+		//transformComp.updateTransform();
+		keyboardComp.directionPressed(MovementDirection::Left);
+		break;
+	case SC_KEY_RIGHT:
+		//transformComp.translation.z -= 0.5;
+		//transformComp.updateTransform();
+		keyboardComp.directionPressed(MovementDirection::Right);
+		break;
+		
 	}
 	return false;
 }
+
+
+bool Editor::onKeyRelease(SC::KeyReleasedEvent & e)
+{
+	auto labelView = m_registry.view<LabelComponent>();
+	static int labelIndex = 0;
+	auto selectedEntity = labelView[labelIndex];
+	auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
+
+	switch (e.GetKeyCode())
+	{
+	case SC_KEY_UP:
+		keyboardComp.directionReleased(MovementDirection::Front);
+		break;
+	case SC_KEY_DOWN:
+		keyboardComp.directionReleased(MovementDirection::Back);
+		break;
+	case SC_KEY_LEFT:
+		keyboardComp.directionReleased(MovementDirection::Left);
+		break;
+	case SC_KEY_RIGHT:
+		keyboardComp.directionReleased(MovementDirection::Right);
+		break;
+	}
+	return false;
+}
+
+
