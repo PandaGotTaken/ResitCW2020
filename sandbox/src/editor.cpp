@@ -318,6 +318,8 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	static int labelIndex = 0;
 	auto selectedEntity = labelView[labelIndex];
 	auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
+	auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
+
 	
 	switch (e.GetKeyCode())
 	
