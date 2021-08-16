@@ -213,19 +213,18 @@ void Editor::run()
 				auto& renderComp = m_registry.get<RenderComponent>(selectedEntity);
 
 				MeshType currentMesh = renderComp.getMeshType();
-				int meshIndex = 0;
+				static int meshIndex = 0;
 
 				/*
-				if (currentMesh == MeshType::Capsule) { meshIndex = 1; }
-				if (currentMesh == MeshType::Cuboid) { meshIndex = 2; }
-				if (currentMesh == MeshType::Sphere) { meshIndex = 3; }
+				ImGui::RadioButton("Capsule", &meshIndex, 1);  ImGui::SameLine();
+				ImGui::RadioButton("Cuboid", &meshIndex, 2);  ImGui::SameLine();
+				ImGui::RadioButton("Sphere", &meshIndex, 3);
 				*/
-
-				if (ImGui::RadioButton("Capsule", currentMesh == MeshType::Capsule)) { meshIndex = 1; };  ImGui::SameLine();
-				if (ImGui::RadioButton("Cuboid", currentMesh == MeshType::Cuboid)) { meshIndex = 2; }; ImGui::SameLine();
-				if (ImGui::RadioButton("Sphere", currentMesh == MeshType::Sphere)) { meshIndex = 3; };
-
-				renderComp.setMeshType(meshIndex);
+				
+				if (ImGui::RadioButton("Capsule", currentMesh == MeshType::Capsule))	{ currentMesh = MeshType::Capsule; renderComp.setMeshType(1); };  ImGui::SameLine();
+				if (ImGui::RadioButton("Cuboid", currentMesh == MeshType::Cuboid))		{ currentMesh = MeshType::Cuboid; renderComp.setMeshType(2); }; ImGui::SameLine();
+				if (ImGui::RadioButton("Sphere", currentMesh == MeshType::Sphere))		{ currentMesh = MeshType::Sphere; renderComp.setMeshType(3); };
+				
 
 
 				//Colour selection
@@ -247,25 +246,55 @@ void Editor::run()
 			break;
 			case 'K':
 			{
-				
 				auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
 				auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
 
 				float translation[3];
 
+				float turn = keyboardComp.getTurnDirection();
+				transformComp.addRotation(glm::vec3(0, glm::radians(turn), 0));
+
+				auto& trans = transformComp.getTransform();
+				glm::vec3 right = { trans[0][0], trans[0][1], trans[0][2] };
+
+				glm::vec3 forward = { trans[2][0], trans[2][1], trans[2][2] };
+
 				translation[0] = transformComp.translation.x;
 				translation[1] = transformComp.translation.y;
 				translation[2] = transformComp.translation.z;
 
-				glm::vec3 currentDirection = keyboardComp.getDirection();
+				auto currentDirection = keyboardComp.getDirection();
+
+				float speed = keyboardComp.getSpeed();
+				switch (currentDirection)
+				{
+				case MovementDirection::Front:
+					transformComp.translation += forward * speed;
+				break;
+				case MovementDirection::Back:
+					transformComp.translation -= forward * speed;
+				break;
+				case MovementDirection::Left:
+					transformComp.translation -= right * speed;
+				break;
+				case MovementDirection::Right:
+					transformComp.translation += right * speed;
+				break;
+				}
+				/*
+				glm::vec3 delta = currentDirection * forward + currentDirection * right;
 
 				translation[0] += currentDirection.x;
 				translation[2] += currentDirection.z;
+				
 				transformComp.translation = { translation[0], translation[1], translation[2] };
+				*/
 				transformComp.updateTransform();
 
 				ImGui::TextWrapped("Use Arrow Keys to move the key mapped object");
 				
+
+
 				// For higher marks perform key mapping here.
 			}
 				break;
@@ -320,6 +349,7 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
 	auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
 
+	int mfront = keyboardComp.getKey(ControlKeys::mfront);
 	
 	switch (e.GetKeyCode())
 	
@@ -341,8 +371,7 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 		break;
 	case SC_KEY_E:
 		SC::Renderer::cameraDown(); return true;
-		break;
-		
+		break;	
 	case SC_KEY_UP:
 		//transformComp.translation.x += 0.5;
 		//transformComp.updateTransform();
@@ -363,7 +392,12 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 		//transformComp.updateTransform();
 		keyboardComp.directionPressed(MovementDirection::Right);
 		break;
-		
+	case SC_KEY_O:
+		keyboardComp.turnPressed(TurnDirection::Left);
+		break;
+	case SC_KEY_P:
+		keyboardComp.turnPressed(TurnDirection::Right);
+		break;
 	}
 	return false;
 }
@@ -389,6 +423,12 @@ bool Editor::onKeyRelease(SC::KeyReleasedEvent & e)
 		break;
 	case SC_KEY_RIGHT:
 		keyboardComp.directionReleased(MovementDirection::Right);
+		break;
+	case SC_KEY_O:
+		keyboardComp.turnReleased(TurnDirection::Left);
+		break;
+	case SC_KEY_P:
+		keyboardComp.turnReleased(TurnDirection::Right);
 		break;
 	}
 	return false;
