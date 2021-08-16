@@ -212,6 +212,7 @@ void Editor::run()
 			{
 				auto& renderComp = m_registry.get<RenderComponent>(selectedEntity);
 
+				ImGui::TextWrapped("Adjust mesh type of object");
 				MeshType currentMesh = renderComp.getMeshType();
 				static int meshIndex = 0;
 
@@ -228,6 +229,7 @@ void Editor::run()
 
 
 				//Colour selection
+				ImGui::TextWrapped("Adjust colour tint of object");
 				auto& currentColour = renderComp.getColour();
 				static float rgb[3];
 				rgb[0] = currentColour[0];
@@ -246,6 +248,7 @@ void Editor::run()
 			break;
 			case 'K':
 			{
+				ImGui::TextWrapped("Use mapped keys to move the key component object");
 				auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
 				auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
 
@@ -291,9 +294,12 @@ void Editor::run()
 				*/
 				transformComp.updateTransform();
 
-				ImGui::TextWrapped("Use Arrow Keys to move the key mapped object");
-				
+				/*
+				static int keyIndex = 0;
+				char keys[10] = { "w", "a", "s", "d", "o", "p", "up", "down", "left", "right" };
 
+				ImGui::ListBox("##GameObjects", &keyIndex, labels.data(), labels.size(), labels.size());
+				*/
 
 				// For higher marks perform key mapping here.
 			}

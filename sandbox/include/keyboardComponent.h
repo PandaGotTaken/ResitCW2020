@@ -1,6 +1,5 @@
 #pragma once
 #include "IMAT3905.h"
-#include "transformComponent.h"
 
 enum class MovementDirection { Front, Back, Left, Right, None};
 enum class TurnDirection {Left, Right};
