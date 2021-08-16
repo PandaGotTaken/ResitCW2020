@@ -264,7 +264,7 @@ void Editor::run()
 				transformComp.translation = { translation[0], translation[1], translation[2] };
 				transformComp.updateTransform();
 
-				ImGui::TextWrapped("No properties.");
+				ImGui::TextWrapped("Use Arrow Keys to move the key mapped object");
 				
 				// For higher marks perform key mapping here.
 			}

@@ -56,7 +56,7 @@ public:
 			}
 		}
 		if (backPressed == true) {
-			if (velocity.x > 1) {
+			if (velocity.x > -1) {
 				velocity.x -= 1;
 			}
 		}
@@ -66,7 +66,7 @@ public:
 			}
 		}
 		if (rightPressed == true) {
-			if (velocity.z > 1) {
+			if (velocity.z > -1) {
 				velocity.z -= 1;
 			}
 		}
