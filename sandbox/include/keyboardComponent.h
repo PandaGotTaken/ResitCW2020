@@ -157,6 +157,32 @@ public:
 		return 0;
 	}
 
+	void setArrowKeys() {
+		mfrontkey = SC_KEY_UP;
+		mbackkey = SC_KEY_DOWN;
+		mleftkey = SC_KEY_LEFT;
+		mrightkey = SC_KEY_RIGHT;
+		letterKeys = false;
+		arrowKeys = true;
+	}
+
+	void setLetterKeys() {
+		mfrontkey = SC_KEY_I;
+		mbackkey = SC_KEY_K;
+		mleftkey = SC_KEY_J;
+		mrightkey = SC_KEY_L;
+		letterKeys = true;
+		arrowKeys = false;
+	}
+
+	bool getLetterKeys() {
+		return letterKeys;
+	}
+
+	bool getArrowKeys() {
+		return arrowKeys;
+	}
+
 	float getSpeed() { return m_speed; }
 
 private:
@@ -168,5 +194,7 @@ private:
 	bool lturnPressed;
 	bool rturnPressed;
 	int cfrontkey = SC_KEY_W, cbackkey = SC_KEY_S, cleftkey = SC_KEY_A, crightkey = SC_KEY_D, rleftkey = SC_KEY_O, rrightkey = SC_KEY_P, mfrontkey = SC_KEY_UP, mbackkey = SC_KEY_DOWN, mleftkey = SC_KEY_LEFT, mrightkey = SC_KEY_RIGHT;
+	bool letterKeys = false;
+	bool arrowKeys = true;
 	glm::vec3 velocity;
 };

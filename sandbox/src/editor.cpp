@@ -150,7 +150,6 @@ void Editor::run()
 			// Component properties
 			ImGui::TextWrapped("Properties:");
 			ImGui::NewLine();
-			ImGui::ShowDemoWindow();
 			char selectedComponentType = componentTypes[componentIndex];
 			
 
@@ -248,9 +247,13 @@ void Editor::run()
 			break;
 			case 'K':
 			{
-				ImGui::TextWrapped("Use mapped keys to move the key component object");
 				auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
 				auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
+
+				ImGui::TextWrapped("Alternate between using the Arrow Keys or Letter Keys (IJKL) to move the selected object");
+
+				if (ImGui::RadioButton("Arrow Keys", keyboardComp.getArrowKeys() == true)) { keyboardComp.setArrowKeys(); }; ImGui::SameLine();
+				if (ImGui::RadioButton("Letter Keys", keyboardComp.getLetterKeys() == true)) { keyboardComp.setLetterKeys(); };
 
 				float translation[3];
 
@@ -278,10 +281,10 @@ void Editor::run()
 					transformComp.translation -= forward * speed;
 				break;
 				case MovementDirection::Left:
-					transformComp.translation -= right * speed;
+					transformComp.translation += right * speed;
 				break;
 				case MovementDirection::Right:
-					transformComp.translation += right * speed;
+					transformComp.translation -= right * speed;
 				break;
 				}
 				/*
@@ -354,8 +357,6 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	auto selectedEntity = labelView[labelIndex];
 	auto& keyboardComp = m_registry.get<KeyboardComponent>(selectedEntity);
 	auto& transformComp = m_registry.get<TransformComponent>(selectedEntity);
-
-	int mfront = keyboardComp.getKey(ControlKeys::mfront);
 	
 	switch (e.GetKeyCode())
 	
@@ -381,22 +382,18 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 	case SC_KEY_UP:
 		//transformComp.translation.x += 0.5;
 		//transformComp.updateTransform();
-		keyboardComp.directionPressed(MovementDirection::Front);
 		break;
 	case SC_KEY_DOWN:
 		//transformComp.translation.x -= 0.5;
 		//transformComp.updateTransform();
-		keyboardComp.directionPressed(MovementDirection::Back);
 		break;
 	case SC_KEY_LEFT:
 		//transformComp.translation.z += 0.5;
 		//transformComp.updateTransform();
-		keyboardComp.directionPressed(MovementDirection::Left);
 		break;
 	case SC_KEY_RIGHT:
 		//transformComp.translation.z -= 0.5;
 		//transformComp.updateTransform();
-		keyboardComp.directionPressed(MovementDirection::Right);
 		break;
 	case SC_KEY_O:
 		keyboardComp.turnPressed(TurnDirection::Left);
@@ -405,7 +402,21 @@ bool Editor::onKeyPress(SC::KeyPressedEvent & e)
 		keyboardComp.turnPressed(TurnDirection::Right);
 		break;
 	}
-	return false;
+
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mfront)) {
+		keyboardComp.directionPressed(MovementDirection::Front);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mback)) {
+		keyboardComp.directionPressed(MovementDirection::Back);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mleft)) {
+		keyboardComp.directionPressed(MovementDirection::Left);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mright)) {
+		keyboardComp.directionPressed(MovementDirection::Right);
+	}
+
+	return false;                                                                                                                                                                                 
 }
 
 
@@ -419,16 +430,16 @@ bool Editor::onKeyRelease(SC::KeyReleasedEvent & e)
 	switch (e.GetKeyCode())
 	{
 	case SC_KEY_UP:
-		keyboardComp.directionReleased(MovementDirection::Front);
+		//keyboardComp.directionReleased(MovementDirection::Front);
 		break;
 	case SC_KEY_DOWN:
-		keyboardComp.directionReleased(MovementDirection::Back);
+		//keyboardComp.directionReleased(MovementDirection::Back);
 		break;
 	case SC_KEY_LEFT:
-		keyboardComp.directionReleased(MovementDirection::Left);
+		//keyboardComp.directionReleased(MovementDirection::Left);
 		break;
 	case SC_KEY_RIGHT:
-		keyboardComp.directionReleased(MovementDirection::Right);
+		//keyboardComp.directionReleased(MovementDirection::Right);
 		break;
 	case SC_KEY_O:
 		keyboardComp.turnReleased(TurnDirection::Left);
@@ -436,6 +447,18 @@ bool Editor::onKeyRelease(SC::KeyReleasedEvent & e)
 	case SC_KEY_P:
 		keyboardComp.turnReleased(TurnDirection::Right);
 		break;
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mfront)) {
+		keyboardComp.directionReleased(MovementDirection::Front);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mback)) {
+		keyboardComp.directionReleased(MovementDirection::Back);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mleft)) {
+		keyboardComp.directionReleased(MovementDirection::Left);
+	}
+	if (e.GetKeyCode() == keyboardComp.getKey(ControlKeys::mright)) {
+		keyboardComp.directionReleased(MovementDirection::Right);
 	}
 	return false;
 }
